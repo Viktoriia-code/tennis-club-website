@@ -5,7 +5,7 @@ interface LanguageToggleProps {
   className?: string;
 }
 
-const LanguageToggle: React.FC<LanguageToggleProps> = ({ className }) => {
+const LanguageToggle: React.FC<LanguageToggleProps> = ({ className = '' }) => {
   const { i18n } = useTranslation();
 
   useEffect(() => {
@@ -13,8 +13,8 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({ className }) => {
     i18n.changeLanguage(savedLanguage);
   }, [i18n]);
 
-  const handleChangeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
+  const handleChangeLanguage = async (lang: string) => {
+    await i18n.changeLanguage(lang);
     localStorage.setItem('language', lang);
   };
 

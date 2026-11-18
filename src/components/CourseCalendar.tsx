@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import { EventContentArg, EventInput } from "@fullcalendar/core";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -108,7 +108,6 @@ const mapEvents = (rawEvents: RawEvent[], monday: Date): EventInput[] => {
 };
 
 const CourseCalendar = (): JSX.Element => {
-  const [events, setEvents] = useState<EventInput[]>([]);
   const [selectedLoc, setSelectedLoc] = useState<LocationKeys>("Molemmat");
   const [selectedAge, setSelectedAge] = useState<string>("Molemmat");
   const [selectedTrainer, setSelectedTrainer] = useState<Record<string, boolean>>({
@@ -121,33 +120,37 @@ const CourseCalendar = (): JSX.Element => {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const selectedTrainers = Object.entries(selectedTrainer)
-    .filter(([, value]) => value)
-    .map(([key]) => key);
-
-  useEffect(() => {
+  const events = useMemo(() => {
     const monday = getMonday(new Date());
 
     let filtered = rawEvents;
 
     if (selectedLoc !== "Molemmat") {
       const allowedLocations = locationMap[selectedLoc];
-      filtered = filtered.filter(ev => allowedLocations.includes(ev.location));
+      filtered = filtered.filter(ev =>
+        allowedLocations.includes(ev.location)
+      );
     }
 
     if (selectedAge !== "Molemmat") {
       const allowedAges = ageMap[selectedAge];
-      filtered = filtered.filter(ev => allowedAges.includes(ev.text));
+      filtered = filtered.filter(ev =>
+        allowedAges.includes(ev.text)
+      );
     }
 
-    filtered = filtered.filter(ev => selectedTrainers.includes(ev.trainer));
+    filtered = filtered.filter(
+      ev => selectedTrainer[ev.trainer]
+    );
 
     if (onlyAvailable) {
-      filtered = filtered.filter(ev => ev.availableSpots && ev.availableSpots > 0);
+      filtered = filtered.filter(
+        ev => ev.availableSpots && ev.availableSpots > 0
+      );
     }
 
-    setEvents(mapEvents(filtered, monday));
-  }, [selectedLoc, selectedAge, selectedTrainers, onlyAvailable]);
+    return mapEvents(filtered, monday);
+  }, [selectedLoc, selectedAge, selectedTrainer, onlyAvailable]);
 
   const toggleTrainer = (trainer: string) => {
     setSelectedTrainer(prev => ({
